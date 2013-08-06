@@ -1,39 +1,9 @@
-module fifo_consumer(input [7:0] fifo,output obit, input clk);
-	reg muxbit;
-	reg [2:0] state;
-	always @(posedge clk) begin
-		muxbit <= fifo[state];
-		state <= state + 1;
-	end
-	assign obit = muxbit;
-endmodule
-
-
-module convert_ws2811_pattern(input bit,output [3:0] seq);
-	assign seq = bit ? 4'b1110 : 4'b1000;
-endmodule
-
-module shift_register_4
-#(parameter N=4)
-(input clk,input sr_in, output sr_out);
-	reg [N-1:0] sr;
-	always @ (posedge clk)
-	begin
-			sr[N-1:1] <= sr[N-2:0];
-			sr[0] <= sr_in;
-	end
-	assign sr_out = sr[N-1];
-endmodule
-
-module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk,b12,b13,b14,a12,a13,a14);
+module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811);
 	input [7:0] ad;
 	input rxf_,txe_,clk;
-	input onboardclk;
-	output rd_,wr_,siwub,oe_,ws2811,myclk;
-	output b12,b13,b14,a12,a13,a14;
+	output rd_,wr_,siwub,oe_,ws2811;
 	
 	
-	assign wr_ = 1'b1;
 	
 	wire clk12_8, // minimum useful freq that can be generated from 60MHz
 	     clk3_2,  // frequency of the four parts that make up one 1.25us cell
@@ -50,7 +20,6 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk,b12,b
 	wire	  wrempty,wrfull;
 	reg [7:0] ad_reg;
 	
-	
 	fifo f (
 	.data(ad_reg),
 	.rdclk(clk100),
@@ -63,7 +32,6 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk,b12,b
 	.wrempty(wrempty),
 	.wrfull(wrfull));
 		
-	
 	reg read_ftdi_p;
 	always @(posedge clk) begin
 		read_ftdi_p <= (rxf_==1'b0);  // ftdi signals it can be read
@@ -72,8 +40,6 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk,b12,b
 	assign oe_ = !read_ftdi_p;	// set ftdi data port to output/input
 	assign rd_ = !read_ftdi_p;
 	
-	assign {a12,a13,a14}={read_ftdi_p,fillfifo,consumefifo}; // side without rect
-	assign {b12,b13,b14}={clk100,clk800,clk3_2}; // side with rect
 	always @(posedge clk) begin
 		if(read_ftdi_p & ~oe_ & ~wrfull)
 			ad_reg[7:0] <= ad[7:0];
@@ -86,11 +52,13 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk,b12,b
 		else
 			fillfifo <= ~wrfull; // stop when full
 	end
+	
+	assign wr_ = 1'b1;
 
 	assign wrreq = fillfifo & read_ftdi_p;
 	
 	reg consumefifo;
-	always @(posedge clk800) begin
+	always @(posedge clk3_2) begin
 		if(consumefifo)
 			consumefifo <= ~rdempty; // stop when empty
 		else
@@ -99,27 +67,17 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk,b12,b
 	
 	assign rdreq = consumefifo;
 	
-	reg muxbit;
-	reg [2:0] state;
-	always @(posedge clk800) begin
-		muxbit <= consumefifo ? q_fifo[state] : 1'b0;
-		state <= state + 1;
+	reg muxbit, muxsub, carry = 1'b0;
+	reg [1:0] suboff = 4'b1000, subon = 4'b1110;
+	reg [2:0] bitcount;
+	reg [1:0] subcount; // index for one of the 4 subcells in 1.25us
+	always @(posedge clk3_2) begin
+		if(carry == 1'b0) begin // go to next bit when 4 subcells were produced
+			muxbit <= consumefifo ? q_fifo[bitcount] : 1'b0;
+			bitcount <= bitcount + 1;
+		end
+		muxsub <= muxbit ? subon[subcount] : suboff[subcount];
+		{carry, subcount} <= subcount + 1;
 	end
-	assign ws2811 = muxbit;
-	
-	
-	//fifo_consumer consum(.fifo(q_fifo),.obit(ws2811),.clk(clk800));
-	
-	
-	reg [7:0] count;
-	always @(posedge onboardclk) begin
-		count <= count + 1;
-	end
-		
-
-	assign myclock = count[7]; // e14 on the same side as rect
-//	assign ws2811 = clk100; // e16 opposite of rect
-	
-	
-	
+	assign ws2811 = muxsub;
 endmodule
