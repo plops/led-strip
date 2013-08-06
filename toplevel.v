@@ -31,6 +31,9 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk);
 	input onboardclk;
 	output rd_,wr_,siwub,oe_,ws2811,myclk;
 	
+	
+	assign wr_ = 1'b1;
+	
 	wire clk12_8, // minimum useful freq that can be generated from 60MHz
 	     clk3_2,  // frequency of the four parts that make up one 1.25us cell
 		  clk800,  // one bit in the ws2811 stream (1.25us cells)
@@ -40,14 +43,10 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk);
 	divide_clock_by_4 c3(clk3_2,clk800);
 	divide_clock_by_8 c4(clk800,clk100);
 
-	wire	  rdclk;
-	wire	  rdreq;
-	wire	  wrreq;
+	wire	  rdclk,rdreq,wrreq;
 	wire [7:0] q_fifo;
-	wire	  rdempty;
-	wire	  wrempty;
-	wire	  wrfull;
-
+	wire	  rdempty,rdfull;
+	wire	  wrempty,wrfull;
 	reg [7:0] ad_reg;
 	
 	
@@ -59,6 +58,7 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk);
 	.wrreq(wrreq),
 	.q(q_fifo),
 	.rdempty(rdempty),
+	.rdfull(rdfull),
 	.wrempty(wrempty),
 	.wrfull(wrfull));
 		
@@ -69,7 +69,8 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk);
 	end
 		
 	assign oe_ = !read_ftdi_p;	// set ftdi data port to output/input
-		
+	assign rd_ = !read_ftdi_p;
+	
 	always @(posedge clk) begin
 		if(read_ftdi_p & ~oe_ & ~wrfull)
 			ad_reg[7:0] <= ad[7:0];
@@ -85,6 +86,15 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk);
 
 	assign wrreq = fillfifo & read_ftdi_p;
 	
+	reg consumefifo;
+	always @(posedge clk800) begin
+		if(consumefifo)
+			consumefifo <= ~rdempty; // stop when empty
+		else
+			consumefifo <= rdfull; // start when full
+	end
+	
+	assign rdreq = consumefifo;
 	
 	fifo_consumer consum(.fifo(q_fifo),.obit(ws2811),.clk(clk800));
 	
@@ -95,8 +105,8 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk);
 	end
 		
 	
-	assign myclock = count[7];
-	
+	assign myclock = wrreq; // e14
+//	assign ws2811 = clk100; // e16
 	
 	
 	

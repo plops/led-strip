@@ -44,6 +44,7 @@ module fifo (
 	wrreq,
 	q,
 	rdempty,
+	rdfull,
 	wrempty,
 	wrfull);
 
@@ -54,6 +55,7 @@ module fifo (
 	input	  wrreq;
 	output	[7:0]  q;
 	output	  rdempty;
+	output	  rdfull;
 	output	  wrempty;
 	output	  wrfull;
 
@@ -61,10 +63,12 @@ module fifo (
 	wire  sub_wire1;
 	wire [7:0] sub_wire2;
 	wire  sub_wire3;
+	wire  sub_wire4;
 	wire  wrempty = sub_wire0;
 	wire  wrfull = sub_wire1;
 	wire [7:0] q = sub_wire2[7:0];
 	wire  rdempty = sub_wire3;
+	wire  rdfull = sub_wire4;
 
 	dcfifo	dcfifo_component (
 				.rdclk (rdclk),
@@ -76,18 +80,18 @@ module fifo (
 				.wrfull (sub_wire1),
 				.q (sub_wire2),
 				.rdempty (sub_wire3),
+				.rdfull (sub_wire4),
 				.aclr (),
-				.rdfull (),
 				.rdusedw (),
 				.wrusedw ());
 	defparam
 		dcfifo_component.intended_device_family = "Cyclone II",
 		dcfifo_component.lpm_hint = "MAXIMIZE_SPEED=5,",
-		dcfifo_component.lpm_numwords = 2048,
+		dcfifo_component.lpm_numwords = 1024,
 		dcfifo_component.lpm_showahead = "OFF",
 		dcfifo_component.lpm_type = "dcfifo",
 		dcfifo_component.lpm_width = 8,
-		dcfifo_component.lpm_widthu = 11,
+		dcfifo_component.lpm_widthu = 10,
 		dcfifo_component.overflow_checking = "ON",
 		dcfifo_component.rdsync_delaypipe = 5,
 		dcfifo_component.underflow_checking = "ON",
@@ -106,7 +110,7 @@ endmodule
 // Retrieval info: PRIVATE: AlmostFullThr NUMERIC "-1"
 // Retrieval info: PRIVATE: CLOCKS_ARE_SYNCHRONIZED NUMERIC "0"
 // Retrieval info: PRIVATE: Clock NUMERIC "4"
-// Retrieval info: PRIVATE: Depth NUMERIC "2048"
+// Retrieval info: PRIVATE: Depth NUMERIC "1024"
 // Retrieval info: PRIVATE: Empty NUMERIC "1"
 // Retrieval info: PRIVATE: Full NUMERIC "1"
 // Retrieval info: PRIVATE: INTENDED_DEVICE_FAMILY STRING "Cyclone II"
@@ -125,7 +129,7 @@ endmodule
 // Retrieval info: PRIVATE: msb_usedw NUMERIC "0"
 // Retrieval info: PRIVATE: output_width NUMERIC "8"
 // Retrieval info: PRIVATE: rsEmpty NUMERIC "1"
-// Retrieval info: PRIVATE: rsFull NUMERIC "0"
+// Retrieval info: PRIVATE: rsFull NUMERIC "1"
 // Retrieval info: PRIVATE: rsUsedW NUMERIC "0"
 // Retrieval info: PRIVATE: sc_aclr NUMERIC "0"
 // Retrieval info: PRIVATE: sc_sclr NUMERIC "0"
@@ -135,11 +139,11 @@ endmodule
 // Retrieval info: LIBRARY: altera_mf altera_mf.altera_mf_components.all
 // Retrieval info: CONSTANT: INTENDED_DEVICE_FAMILY STRING "Cyclone II"
 // Retrieval info: CONSTANT: LPM_HINT STRING "MAXIMIZE_SPEED=5,"
-// Retrieval info: CONSTANT: LPM_NUMWORDS NUMERIC "2048"
+// Retrieval info: CONSTANT: LPM_NUMWORDS NUMERIC "1024"
 // Retrieval info: CONSTANT: LPM_SHOWAHEAD STRING "OFF"
 // Retrieval info: CONSTANT: LPM_TYPE STRING "dcfifo"
 // Retrieval info: CONSTANT: LPM_WIDTH NUMERIC "8"
-// Retrieval info: CONSTANT: LPM_WIDTHU NUMERIC "11"
+// Retrieval info: CONSTANT: LPM_WIDTHU NUMERIC "10"
 // Retrieval info: CONSTANT: OVERFLOW_CHECKING STRING "ON"
 // Retrieval info: CONSTANT: RDSYNC_DELAYPIPE NUMERIC "5"
 // Retrieval info: CONSTANT: UNDERFLOW_CHECKING STRING "ON"
@@ -149,6 +153,7 @@ endmodule
 // Retrieval info: USED_PORT: q 0 0 8 0 OUTPUT NODEFVAL "q[7..0]"
 // Retrieval info: USED_PORT: rdclk 0 0 0 0 INPUT NODEFVAL "rdclk"
 // Retrieval info: USED_PORT: rdempty 0 0 0 0 OUTPUT NODEFVAL "rdempty"
+// Retrieval info: USED_PORT: rdfull 0 0 0 0 OUTPUT NODEFVAL "rdfull"
 // Retrieval info: USED_PORT: rdreq 0 0 0 0 INPUT NODEFVAL "rdreq"
 // Retrieval info: USED_PORT: wrclk 0 0 0 0 INPUT NODEFVAL "wrclk"
 // Retrieval info: USED_PORT: wrempty 0 0 0 0 OUTPUT NODEFVAL "wrempty"
@@ -161,6 +166,7 @@ endmodule
 // Retrieval info: CONNECT: @wrreq 0 0 0 0 wrreq 0 0 0 0
 // Retrieval info: CONNECT: q 0 0 8 0 @q 0 0 8 0
 // Retrieval info: CONNECT: rdempty 0 0 0 0 @rdempty 0 0 0 0
+// Retrieval info: CONNECT: rdfull 0 0 0 0 @rdfull 0 0 0 0
 // Retrieval info: CONNECT: wrempty 0 0 0 0 @wrempty 0 0 0 0
 // Retrieval info: CONNECT: wrfull 0 0 0 0 @wrfull 0 0 0 0
 // Retrieval info: GEN_FILE: TYPE_NORMAL fifo.v TRUE
