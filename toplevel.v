@@ -25,11 +25,12 @@ module shift_register_4
 	assign sr_out = sr[N-1];
 endmodule
 
-module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk);
+module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk,b12,b13,b14,a12,a13,a14);
 	input [7:0] ad;
 	input rxf_,txe_,clk;
 	input onboardclk;
 	output rd_,wr_,siwub,oe_,ws2811,myclk;
+	output b12,b13,b14,a12,a13,a14;
 	
 	
 	assign wr_ = 1'b1;
@@ -71,6 +72,8 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk);
 	assign oe_ = !read_ftdi_p;	// set ftdi data port to output/input
 	assign rd_ = !read_ftdi_p;
 	
+	assign {a12,a13,a14}={read_ftdi_p,fillfifo,consumefifo}; // side without rect
+	assign {b12,b13,b14}={clk100,clk800,clk3_2}; // side with rect
 	always @(posedge clk) begin
 		if(read_ftdi_p & ~oe_ & ~wrfull)
 			ad_reg[7:0] <= ad[7:0];
@@ -96,7 +99,16 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk);
 	
 	assign rdreq = consumefifo;
 	
-	fifo_consumer consum(.fifo(q_fifo),.obit(ws2811),.clk(clk800));
+	reg muxbit;
+	reg [2:0] state;
+	always @(posedge clk800) begin
+		muxbit <= consumefifo ? q_fifo[state] : 1'b0;
+		state <= state + 1;
+	end
+	assign ws2811 = muxbit;
+	
+	
+	//fifo_consumer consum(.fifo(q_fifo),.obit(ws2811),.clk(clk800));
 	
 	
 	reg [7:0] count;
@@ -104,9 +116,9 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,oe_,ws2811,myclk,onboardclk);
 		count <= count + 1;
 	end
 		
-	
-	assign myclock = wrreq; // e14
-//	assign ws2811 = clk100; // e16
+
+	assign myclock = count[7]; // e14 on the same side as rect
+//	assign ws2811 = clk100; // e16 opposite of rect
 	
 	
 	
