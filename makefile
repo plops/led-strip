@@ -5,4 +5,4 @@ all:
 	quartus_map test.bdf
 	quartus_fit test.bdf
 	quartus_asm test.bdf
-	upload_morphic output_file/test.rbf 
+#	sudo upload_morphic output_file/test.rbf 
