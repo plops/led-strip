@@ -6,10 +6,10 @@ module divide_clock_by_4(input in,output out);
 	assign out = count[1];
 endmodule
 
-module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,clk50,oe_,ws2811);
+module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,clk50,oe_,ws2811,n13);
 	input [7:0] ad;
 	input rxf_,txe_,clk,clk50;
-	output rd_,wr_,siwub,oe_,ws2811;
+	output rd_,wr_,siwub,oe_,ws2811,n13; // n13 is connected to init-done and drives the green led
 	
 	wire clk12_8, // minimum useful freq that can be generated from 60MHz
 	     clk3_2;  // frequency of the four parts that make up one 1.25us cell
