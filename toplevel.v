@@ -112,7 +112,7 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,clk50,oe_,ws2811,n13,n11,l12,r9,r
 	 muxbit <= consumefifo ? q_fifo[bitcount] : 1'b0;
 	 bitcount <= bitcount + 1;
       end
-      muxsub <= muxbit ? 0 : 1 ;//subon[subcount] : suboff[subcount];
+      muxsub <= muxbit ? subon[subcount] : suboff[subcount];
       subcount <= subcount + 1;
    end
    assign ws2811 = muxsub; // e16 not at rectangle
