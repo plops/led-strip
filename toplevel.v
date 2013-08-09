@@ -49,22 +49,22 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,clk50,oe_,ws2811,n13,n11,l12,r9,r
    always @(posedge clk) begin
       case (state) 
 	0: begin // wait_rx
-	   state <= (rxf_==0) ? 1 : 0;
+	   state <= (rxf_==0 && ~wrfull) ? 1 : 0;
 	end
 	1: begin // received_rx, not sure if I need this
-	   state <= (rxf_ == 0) ? 2 : 5;
+	   state <= (rxf_ == 0 && ~wrfull) ? 2 : 5;
 	end
 	2: begin // oe_down
 	   oe_ = 1'b0;
-	   state <= (rxf_ == 0) ? 3 : 5;
+	   state <= (rxf_ == 0 && ~wrfull) ? 3 : 5;
 	end
 	3: begin // rd_down
 	   rd_ = 1'b0;
-	   state <=(rxf_ == 0) ? 4 : 5;
+	   state <=(rxf_ == 0 && ~wrfull) ? 4 : 5;
 	end
 	4: begin // read
 	   ad_reg[7:0] <= ad[7:0];
-	   state <= (rxf_ == 0) ? 4 : 5;
+	   state <= (rxf_ == 0 && ~wrfull) ? 4 : 5;
 	end
 	5: begin // oe_rd_up
 	   oe_ = 1'b1;
@@ -75,13 +75,13 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,clk50,oe_,ws2811,n13,n11,l12,r9,r
    end
    
    assign n11 = rxf_;
-   assign l12 = oe_;
-   assign r9 = rd_;
-   assign r11 = state[0];
-      
-   assign r13 = state[1];
-   assign r14 = state[2];
-   assign p16 = txe_;
+   assign l12 = rdfull;
+   assign r9 = rdempty;
+   assign r11 = consumefifo;
+         
+   assign r13 = fillfifo;
+   assign r14 = wrfull;
+   assign p16 = wrempty;
    assign n16 = muxsub;
    
    
@@ -99,7 +99,7 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,clk50,oe_,ws2811,n13,n11,l12,r9,r
       consumefifo <= consumefifo ? ~rdempty : rdfull; // stop when empty, start when full
    end
    
-   assign rdreq = consumefifo;
+   assign rdreq = consumefifo & clk3_2;
    
    reg muxbit, muxsub;
    reg [3:0] suboff = 4'b1000, subon = 4'b1110;
@@ -107,7 +107,7 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,clk50,oe_,ws2811,n13,n11,l12,r9,r
    reg [1:0] subcount; // index for one of the 4 subcells in 1.25us
    
    
-   always @(posedge consumefifo) begin
+   always @(posedge rdreq) begin
       if(subcount == 2'b00) begin // go to next bit when 4 subcells were produced
 	 muxbit <= consumefifo ? q_fifo[bitcount] : 1'b0;
 	 bitcount <= bitcount + 1;
