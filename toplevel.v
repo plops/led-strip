@@ -102,7 +102,7 @@ module toplevel(ad,rxf_,txe_,rd_,wr_,siwub,clk,clk50,oe_,ws2811,n13,n11,l12,r9,r
    assign rdreq = consumefifo & clk3_2;
    
    reg muxbit, muxsub;
-   reg [3:0] suboff = 4'b1000, subon = 4'b1110;
+   reg [3:0] suboff = 4'b0001, subon = 4'b0111;
    reg [2:0] bitcount;
    reg [1:0] subcount; // index for one of the 4 subcells in 1.25us
    
