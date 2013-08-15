@@ -1,0 +1,26 @@
+
+	 
+
+	  	
+- Verilog, C and Lisp code to control a WS2811 LED array
+- The Verilog code implements communicate with a FT2232 Data from
+  a USB high speed port to (30Mbytes/s are possible)
+- The C code uses libftdi to send the FPGA bitstream via USB to the
+  MorphIC-II board. Another C program can send data to the device.
+- The Lisp code is only dependent on libusb-0.1 and can both upload
+  the Bitstream FPGA firmware as well as send image data. This code
+  should be easy to port to the Raspberry PI or Beagle bone. There are
+  no dependencies to any binary blobs by FTDI.
+
+- Verilog, C und Lisp Code um eine WS2811 LED-Zeile anzusteuern
+- Der Verilog Code implementiert die Kommunikation mit einem FT2232 um
+  Daten von einem USB high speed port zu beziehen (30Mbytes/s sind
+  moeglich)
+- Der C Code benutzt libftdi um den FPGA bitstream ueber USB auf das
+  MorphIC-II Board zu laden. Ein weiteres Programm kann Daten an das
+  Geraet senden.
+- Der Lisp Code ist nur von libusb-0.1 abhaengig und kann sowohl den
+  Bitstream der FPGA Firmware hochladen als auch Daten senden. Dieser
+  Code kann bei bedarf ohne weiteres auf Raspberry PI oder Beagle Bone
+  portiert werden. Es bestehen keine Abhaengigkeiten zu irgendwelchen
+  binaeren Blobs von FTDI.
